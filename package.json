@@ -1,0 +1,53 @@
+{
+  "name": "onestop-antibot",
+  "version": "0.1.0",
+  "description": "OneStop Antibot SDK: generate Akamai, SBSD, Pixel, DataDome, Cloudflare and Kasada payloads through the /generate API.",
+  "keywords": [
+    "antibot",
+    "akamai",
+    "datadome",
+    "cloudflare",
+    "kasada",
+    "sbsd",
+    "onestop"
+  ],
+  "homepage": "https://github.com/Onestopapi/onestop-js-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/Onestopapi/onestop-js-sdk/issues"
+  },
+  "license": "MIT",
+  "author": "onestopantibot",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=22.15"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Onestopapi/onestop-js-sdk.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^7.0.2"
+  }
+}

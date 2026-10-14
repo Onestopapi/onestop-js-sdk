@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - run: npx tsc --noEmit
+      - run: for d in examples/*/; do (cd "$d" && npm ci && npx tsc); done
+      - run: npm pack --dry-run
+      # Node 24 bundles npm >= 11.5.1, which trusted publishing requires.
+      - run: npm publish
+      - run: |
+          awk -v h="## ${GITHUB_REF_NAME#v} " 'index($0, h) == 1 {f = 1; next} /^## / {f = 0} f' CHANGELOG.md > notes.md
+          test -s notes.md
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}

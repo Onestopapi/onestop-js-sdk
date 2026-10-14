@@ -1,0 +1,20 @@
+{
+  "name": "onestop-examples-httpcloak",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "check": "tsc"
+  },
+  "dependencies": {
+    "httpcloak": "1.7.3",
+    "https-proxy-agent": "9.1.0",
+    "onestop-antibot": "file:../.."
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^7.0.2"
+  }
+}
