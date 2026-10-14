@@ -44,7 +44,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^22",
