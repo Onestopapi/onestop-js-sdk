@@ -5,7 +5,7 @@ Node.js client for the [OneStop Antibot](https://onestopantibot.com) API, writte
 ## Install
 
 ```sh
-npm install onestop-antibot
+npm install git+https://github.com/Onestopapi/onestop-js-sdk.git
 ```
 
 Requires Node.js 22.15+.
