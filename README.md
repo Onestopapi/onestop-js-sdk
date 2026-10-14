@@ -8,7 +8,7 @@ Node.js client for the [OneStop Antibot](https://onestopantibot.com) API, writte
 npm install onestop-antibot
 ```
 
-Requires Node.js 22.15+.
+Requires Node.js 22.15+. Package: [npm](https://www.npmjs.com/package/onestop-antibot).
 
 ## Quick start
 
