@@ -28,6 +28,18 @@ const res = await session.akamaiSensor({ abck, bmsz, script, scriptUrl });
 // POST res.payload as sensor_data; send res.context on the next call.
 ```
 
+## Header order
+
+Sites check header names and their order. Send the headers your browser sends, in its order, and set the order explicitly in your TLS client:
+
+```ts
+// httpcloak
+await session.request("GET", url, {
+  headers: { "user-agent": userAgent, accept: "*/*" },
+  headerOrder: ["user-agent", "accept"],
+});
+```
+
 See [examples/](examples) for full flows per product and TLS client.
 
 Documentation: [onestopantibot.com/dashboard/docs](https://onestopantibot.com/dashboard/docs)
