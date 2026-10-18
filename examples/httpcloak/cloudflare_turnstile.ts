@@ -5,7 +5,7 @@ import { OneStop, type CloudflareCall, type Session } from "onestop-antibot";
 import * as httpclient from "./httpclient.ts";
 
 const apiKey = "YOUR_API_KEY";
-const identifier = ""; // your identifier or account name
+const identifier = "YOUR_IDENTIFIER"; // your identifier or account name
 const pageUrl = "https://www.example.com/event";
 const siteKey = "YOUR_TURNSTILE_SITE_KEY"; // from the page's turnstile.render options
 const action = "YOUR_TURNSTILE_ACTION";
@@ -16,9 +16,10 @@ const proxy = ""; // your proxy, in the site's country
 
 const hc = new httpclient.Client(proxy);
 const [client, ip] = await newClient();
-const session = newSession(client, ip, pageUrl);
-const first = await getChallengePage(hc);
-const token = await runChallengeLoop(hc, session, first);
+const page = await getPage(hc);
+const session = newSession(client, ip, page.url);
+const first = await getChallengePage(hc, page);
+const token = await runChallengeLoop(hc, session, page, first);
 siteFirewall(hc, pageUrl, token);
 console.log("PASS Turnstile token returned");
 
@@ -42,11 +43,14 @@ function newSession(client: OneStop, ip: string, site: string): Session {
   });
 }
 
+function getPage(hc: httpclient.Client): Promise<httpclient.Response> {
+  return hc.get(pageUrl, httpclient.navigate(acceptLanguage, ""));
+}
+
 // getChallengePage returns the first call: the widget iframe, its final URL
 // and its cf-ray header.
-async function getChallengePage(hc: httpclient.Client): Promise<CloudflareCall> {
-  const page = new URL(pageUrl);
-  const api = await hc.get("https://challenges.cloudflare.com/turnstile/v0/api.js", httpclient.script(acceptLanguage, "cross-site", page.origin + "/").storageAccess());
+async function getChallengePage(hc: httpclient.Client, page: httpclient.Response): Promise<CloudflareCall> {
+  const api = await hc.get("https://challenges.cloudflare.com/turnstile/v0/api.js", httpclient.script(acceptLanguage, "cross-site", new URL(page.url).origin + "/").storageAccess());
   // api.js redirects to /turnstile/v0/<mode>/<version>/api.js.
   const segments = new URL(api.url).pathname.split("/");
   if (segments.length !== 6) httpclient.fatal(`FAIL api.js resolved to ${api.url}`);
@@ -69,13 +73,13 @@ async function getChallengePage(hc: httpclient.Client): Promise<CloudflareCall> 
 
 // runChallengeLoop sends each step's requests; each reply goes back on the
 // next call, by its purpose, until the API returns the token.
-async function runChallengeLoop(hc: httpclient.Client, session: Session, call: CloudflareCall): Promise<string> {
+async function runChallengeLoop(hc: httpclient.Client, session: Session, page: httpclient.Response, call: CloudflareCall): Promise<string> {
   let frameUrl = call.iframeUrl ?? "";
   let step = await session.cloudflareTurnstile(call).catch(httpclient.fail("Turnstile"));
   while (!step.token) {
     const next: CloudflareCall = { context: step.context, action, cData };
     for (const r of step.requests) {
-      const res = await hc.do(r.method, r.url, httpclient.cloudflare(r, acceptLanguage, pageUrl, frameUrl), r.body);
+      const res = await hc.do(r.method, r.url, httpclient.cloudflare(r, acceptLanguage, page.url, frameUrl), r.body);
       switch (r.purpose) {
         case "challenge":
           if (res.status !== 200) httpclient.fatal(`FAIL challenge request returned ${res.status}`);

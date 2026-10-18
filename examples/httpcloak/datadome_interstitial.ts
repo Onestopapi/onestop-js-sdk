@@ -6,7 +6,7 @@ import { OneStop, type Session } from "onestop-antibot";
 import * as httpclient from "./httpclient.ts";
 
 const apiKey = "YOUR_API_KEY";
-const identifier = ""; // your identifier or account name
+const identifier = "YOUR_IDENTIFIER"; // your identifier or account name
 const pageUrl = "https://www.example.com/";
 const acceptLanguage = "en-US,en;q=0.9";
 
@@ -36,11 +36,11 @@ interface InterstitialReply {
 
 const hc = new httpclient.Client(proxy);
 const [client, ip] = await newClient();
-const session = newSession(client, ip, pageUrl);
 const [page, dd] = await getBlockedPage(hc);
-const [geoUrl, geo] = await getChallengePage(hc, dd);
+const session = newSession(client, ip, page.url);
+const [geoUrl, geo] = await getChallengePage(hc, page, dd);
 await solveInterstitial(hc, session, page, geoUrl, geo);
-const status = await reloadPage(hc);
+const status = await reloadPage(hc, page);
 siteFirewall(hc, pageUrl);
 console.log("PASS interstitial view redirect, page re-GET", status);
 
@@ -73,14 +73,14 @@ async function getBlockedPage(hc: httpclient.Client): Promise<[httpclient.Respon
   return [page, dd];
 }
 
-async function getChallengePage(hc: httpclient.Client, dd: Challenge): Promise<[string, httpclient.Response]> {
-  let geoUrl = `${geoOrigin}/interstitial/?initialCid=${httpclient.queryEscape(dd.cid)}&hash=${httpclient.queryEscape(dd.hsh)}&cid=${httpclient.queryEscape(dd.cookie)}&referer=${httpclient.queryEscape(pageUrl)}&s=${dd.s}`;
+async function getChallengePage(hc: httpclient.Client, page: httpclient.Response, dd: Challenge): Promise<[string, httpclient.Response]> {
+  let geoUrl = `${geoOrigin}/interstitial/?initialCid=${httpclient.queryEscape(dd.cid)}&hash=${httpclient.queryEscape(dd.hsh)}&cid=${httpclient.queryEscape(dd.cookie)}&referer=${httpclient.queryEscape(page.url)}&s=${dd.s}`;
   if (dd.e) geoUrl += "&e=" + httpclient.queryEscape(dd.e);
   geoUrl += `&b=${dd.b}&dm=cd`;
 
   // These pauses are browser pacing between the challenge requests, not the API's sleep.
   await sleep(400);
-  const geo = await hc.get(geoUrl, httpclient.frame(acceptLanguage, "cross-site", pageUrl).storageAccess());
+  const geo = await hc.get(geoUrl, httpclient.frame(acceptLanguage, "cross-site", page.url).storageAccess());
   if (geo.status !== 200) httpclient.fatal(`FAIL interstitial page returned ${geo.status}`);
   return [geoUrl, geo];
 }
@@ -113,8 +113,8 @@ async function solveInterstitial(hc: httpclient.Client, session: Session, page: 
   hc.setCookie(domain, pair.slice(0, pair.indexOf("=")), pair.slice(pair.indexOf("=") + 1));
 }
 
-async function reloadPage(hc: httpclient.Client): Promise<number> {
-  const again = await hc.get(pageUrl, httpclient.navigate(acceptLanguage, pageUrl));
+async function reloadPage(hc: httpclient.Client, page: httpclient.Response): Promise<number> {
+  const again = await hc.get(page.url, httpclient.navigate(acceptLanguage, page.url));
   if (again.status !== 200 && again.status !== 302) httpclient.fatal(`FAIL page re-GET returned ${again.status}`);
   return again.status;
 }

@@ -123,7 +123,7 @@ export class Session {
     return this.#call("DatadomeInterstitial", "datadomeInterstitial", body);
   }
 
-  /** Returns the check request's query string as `body`. */
+  /** Returns the check request's query string as `payload`. */
   datadomeSlider(call: T.DatadomeSliderCall): Promise<T.DatadomeSliderResponse> {
     const body: W.DatadomeSliderWire = {
       ...this.#datadomeIdentity(),
@@ -182,6 +182,12 @@ export class Session {
   kasadaTl(scriptUrl: string, script: string): Promise<T.KasadaResponse> {
     const body: W.KasadaTlWire = { ...this.#refererIdentity(), ipsUrl: scriptUrl, script };
     return this.#call("Kasada", "kasada", body);
+  }
+
+  /** Generates the reese84 POST body from the challenge script's URL and raw source. */
+  imperva(scriptUrl: string, script: string): Promise<T.ImpervaResponse> {
+    const body: W.ImpervaWire = { ...this.#datadomeIdentity(), scriptUrl, script };
+    return this.#call("Imperva", "imperva", body);
   }
 
   #cloudflare(mode: string, call: T.CloudflareCall): Promise<T.CloudflareResponse> {

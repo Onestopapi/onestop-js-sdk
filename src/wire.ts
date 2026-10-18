@@ -104,6 +104,11 @@ export interface KasadaTlWire extends Identity {
   script: string;
 }
 
+export interface ImpervaWire extends Identity {
+  scriptUrl: string;
+  script: string;
+}
+
 // Fields left out when empty: an empty string or map, or a null value, is dropped
 // (JSON.stringify drops undefined).
 export const omit = <V>(v: V): V | undefined => v || undefined;
@@ -153,6 +158,7 @@ const schemas: Record<string, Schema> = {
     sleep: "int",
   },
   kasada: { payload: "string", headers: "map", sleep: "int" },
+  imperva: { payload: "string", sleep: "int" },
 };
 
 const INT64 = 2n ** 63n;

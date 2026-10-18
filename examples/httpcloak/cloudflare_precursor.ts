@@ -5,7 +5,7 @@ import { OneStop, type CloudflareCall, type Session } from "onestop-antibot";
 import * as httpclient from "./httpclient.ts";
 
 const apiKey = "YOUR_API_KEY";
-const identifier = ""; // your identifier or account name
+const identifier = "YOUR_IDENTIFIER"; // your identifier or account name
 const pageUrl = "https://www.example.com/";
 const acceptLanguage = "en-US,en;q=0.9";
 

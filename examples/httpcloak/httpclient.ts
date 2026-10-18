@@ -1,3 +1,5 @@
+// Header sets and order here come from one Chrome recording; copy yours from a browser recording of each request you make.
+
 // Sends the examples' target requests with httpcloak (Chrome TLS and HTTP/2
 // fingerprint, one cookie jar) and holds Chrome's headers for each kind of
 // request.
@@ -42,7 +44,7 @@ export class Client {
   // goes through the proxy.
   constructor(proxy: string) {
     this.#session = new Session({
-      preset: "chrome-154-windows",
+      preset: "chrome-155-windows",
       proxy: proxy || undefined,
       tlsOnly: true,
       disableHttp3: true,
@@ -157,14 +159,14 @@ function unescapeHtml(s: string): string {
   );
 }
 
-// Chrome 154 on Windows. Every header set below is in Chrome's order; check them against your browser on your site.
-export const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36";
-const secChUa = `"Chromium";v="154", "Google Chrome";v="154", "Not A(Brand";v="99"`;
-const secChUaFull = `"Chromium";v="154.0.8037.58", "Google Chrome";v="154.0.8037.58", "Not A(Brand";v="99.0.0.0"`;
-const secChUaVersion = `"154.0.8037.58"`;
+// Chrome 155 on Windows.
+export const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36";
+const secChUa = `"Google Chrome";v="155", "Chromium";v="155", "Not(A:Brand";v="24"`;
+const secChUaFull = `"Google Chrome";v="155.0.8059.39", "Chromium";v="155.0.8059.39", "Not(A:Brand";v="24.0.0.0"`;
+const secChUaVersion = `"155.0.8059.39"`;
 const platform = `"Windows"`;
-const acceptDocument = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
-const acceptImage = "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
+const acceptDocument = "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
+const acceptImage = "image/jxl,image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
 const acceptEncoding = "gzip, deflate, br, zstd";
 
 // Headers are sent in this order.
@@ -339,6 +341,44 @@ export function kasadaTl(acceptLanguage: string, kasada: Record<string, string>,
     ["accept-language", acceptLanguage],
     ["priority", "u=1, i"],
   ]).with(kasada);
+}
+
+// impervaScript is the reese84 script, which the challenge page adds as an
+// async script; Chrome sends no priority header for it.
+export function impervaScript(acceptLanguage: string, referer: string): Headers {
+  return new Headers([
+    ["sec-ch-ua-platform", platform],
+    ["user-agent", userAgent],
+    ["sec-ch-ua", secChUa],
+    ["sec-ch-ua-mobile", "?0"],
+    ["accept", "*/*"],
+    ["sec-fetch-site", "same-origin"],
+    ["sec-fetch-mode", "no-cors"],
+    ["sec-fetch-dest", "script"],
+    ["referer", referer],
+    ["accept-encoding", acceptEncoding],
+    ["accept-language", acceptLanguage],
+  ]);
+}
+
+// impervaPost is the reese84 POST; the script sets accept and content-type.
+export function impervaPost(acceptLanguage: string, origin: string, referer: string): Headers {
+  return new Headers([
+    ["sec-ch-ua-platform", platform],
+    ["user-agent", userAgent],
+    ["accept", "application/json; charset=utf-8"],
+    ["sec-ch-ua", secChUa],
+    ["content-type", "text/plain; charset=utf-8"],
+    ["sec-ch-ua-mobile", "?0"],
+    ["origin", origin],
+    ["sec-fetch-site", "same-origin"],
+    ["sec-fetch-mode", "cors"],
+    ["sec-fetch-dest", "empty"],
+    ["referer", referer],
+    ["accept-encoding", acceptEncoding],
+    ["accept-language", acceptLanguage],
+    ["priority", "u=1, i"],
+  ]);
 }
 
 // challengeScript is the Cloudflare challenge script. The challenge page

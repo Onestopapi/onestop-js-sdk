@@ -206,3 +206,10 @@ export interface KasadaResponse {
   sleep: number;
   requestId: string;
 }
+
+/** reese84 POST body (JSON text); send it as is. */
+export interface ImpervaResponse {
+  payload: string;
+  sleep: number;
+  requestId: string;
+}

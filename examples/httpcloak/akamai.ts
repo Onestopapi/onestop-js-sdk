@@ -4,7 +4,7 @@ import { OneStop, type AkamaiSensorCall, type SbsdCall, type Session } from "one
 import * as httpclient from "./httpclient.ts";
 
 const apiKey = "YOUR_API_KEY";
-const identifier = ""; // your identifier or account name
+const identifier = "YOUR_IDENTIFIER"; // your identifier or account name
 const pageUrl = "https://www.example.com/";
 const acceptLanguage = "en-US,en;q=0.9";
 
@@ -98,8 +98,8 @@ async function postSensors(hc: httpclient.Client, session: Session, page: httpcl
     const body = JSON.stringify({ sensor_data: res.payload } satisfies SensorBody);
     const post = await hc.post(sensorUrl.href, httpclient.post(acceptLanguage, "text/plain;charset=UTF-8", origin, page.url).noCache(), body);
     if (post.status !== 200 && post.status !== 201) httpclient.fatal(`FAIL sensor POST returned ${post.status}`);
-    // Accepted: _abck contains ~0~ or the reply is the 17-byte ack.
-    if (hc.cookie(page.url, "_abck").includes("~0~") || post.bytes.length === 17) return;
+    // Accepted: _abck contains ~0~ or the reply is exactly {"success": true}.
+    if (hc.cookie(page.url, "_abck").includes("~0~") || post.bytes.equals(Buffer.from('{"success": true}'))) return;
     if (n === 8) httpclient.fatal("FAIL sensor not accepted after 8 POSTs");
     call = { scriptUrl: sensorUrl.href, context: res.context };
   }

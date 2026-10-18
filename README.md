@@ -2,6 +2,8 @@
 
 Node.js client for the [OneStop Antibot](https://onestopantibot.com) API, written in TypeScript. The SDK calls `/generate` and returns typed results; your application fetches the target pages and scripts and sends the generated payloads.
 
+Products: Akamai (sensor, SBSD, Pixel, sec-cpt), DataDome (tags, interstitial, slider), Cloudflare (WAF, Turnstile, JSD, precursor), Kasada (p.js, /tl, CD header), Imperva (reese84).
+
 ## Install
 
 ```sh
@@ -17,7 +19,7 @@ import { OneStop } from "onestop-antibot";
 
 const client = new OneStop({
   apiKey: "YOUR_API_KEY",
-  identifier: "", // your identifier or account name
+  identifier: "YOUR_IDENTIFIER", // your identifier or account name
   ipAgent, // an http.Agent through your proxy
 });
 const ip = await client.getIp(); // the proxy's IP
@@ -30,7 +32,7 @@ const res = await session.akamaiSensor({ abck, bmsz, script, scriptUrl });
 
 ## Header order
 
-Sites check header names and their order. Send the headers your browser sends, in its order, and set the order explicitly in your TLS client:
+Copy each request's header names, values and order from a browser recording (DevTools, powhttp, Charles) of that request, and set the order explicitly in your TLS client; the examples' headers only show how:
 
 ```ts
 // httpcloak
@@ -40,6 +42,6 @@ await session.request("GET", url, {
 });
 ```
 
-See [examples/](examples) for full flows per product and TLS client.
+See [examples/](examples) for full flows per product with httpcloak.
 
 Documentation: [onestopantibot.com/dashboard/docs](https://onestopantibot.com/dashboard/docs)

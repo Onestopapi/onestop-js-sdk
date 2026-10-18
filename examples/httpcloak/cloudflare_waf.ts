@@ -5,7 +5,7 @@ import { OneStop, type CloudflareCall, type Session } from "onestop-antibot";
 import * as httpclient from "./httpclient.ts";
 
 const apiKey = "YOUR_API_KEY";
-const identifier = ""; // your identifier or account name
+const identifier = "YOUR_IDENTIFIER"; // your identifier or account name
 const pageUrl = "https://www.example.com/login";
 const acceptLanguage = "en-US,en;q=0.9";
 
@@ -16,9 +16,9 @@ const challengeToken = /__cf_chl_rt_tk=([^"&]+)/;
 
 const hc = new httpclient.Client(proxy);
 const [client, ip] = await newClient();
-const session = newSession(client, ip, pageUrl);
-const first = await getChallengePage(hc);
-await runChallengeLoop(hc, session, first);
+const [page, first] = await getChallengePage(hc);
+const session = newSession(client, ip, page.url);
+await runChallengeLoop(hc, session, page, first);
 siteFirewall(hc, pageUrl);
 console.log("PASS cf_clearance set");
 
@@ -42,8 +42,9 @@ function newSession(client: OneStop, ip: string, site: string): Session {
   });
 }
 
-// getChallengePage returns the first call: the challenge page and its script.
-async function getChallengePage(hc: httpclient.Client): Promise<CloudflareCall> {
+// getChallengePage returns the page and the first call: the page and its
+// challenge script.
+async function getChallengePage(hc: httpclient.Client): Promise<[httpclient.Response, CloudflareCall]> {
   const page = await hc.get(pageUrl, httpclient.navigate(acceptLanguage, ""));
   // The challenge page has the script path (src = '...') and the
   // __cf_chl_rt_tk token.
@@ -51,20 +52,20 @@ async function getChallengePage(hc: httpclient.Client): Promise<CloudflareCall> 
   const tokenMatch = page.body.match(challengeToken);
   if (!scriptMatch || !tokenMatch) httpclient.fatal(`FAIL page returned ${page.status} without a Cloudflare challenge`);
   const scriptUrl = page.resolve(scriptMatch[1]).href;
-  const script = await hc.get(scriptUrl, httpclient.challengeScript(acceptLanguage, pageUrl + "?__cf_chl_rt_tk=" + tokenMatch[1]));
-  return { html: page.body, script: script.body, scriptUrl };
+  const script = await hc.get(scriptUrl, httpclient.challengeScript(acceptLanguage, page.url + "?__cf_chl_rt_tk=" + tokenMatch[1]));
+  return [page, { html: page.body, script: script.body, scriptUrl }];
 }
 
 // runChallengeLoop sends each step's requests; each reply goes back on the
 // next call, by its purpose. The form POST sets cf_clearance.
-async function runChallengeLoop(hc: httpclient.Client, session: Session, call: CloudflareCall): Promise<void> {
+async function runChallengeLoop(hc: httpclient.Client, session: Session, page: httpclient.Response, call: CloudflareCall): Promise<void> {
   let step = await session.cloudflareWaf(call).catch(httpclient.fail("WAF"));
   let frameUrl = "";
   while (!step.token) {
     const next: CloudflareCall = { context: step.context };
     for (const r of step.requests) {
       if (r.purpose === "form") hc.followRedirects(false);
-      const res = await hc.do(r.method, r.url, httpclient.cloudflare(r, acceptLanguage, pageUrl, frameUrl), r.body);
+      const res = await hc.do(r.method, r.url, httpclient.cloudflare(r, acceptLanguage, page.url, frameUrl), r.body);
       switch (r.purpose) {
         case "challenge":
           if (res.status !== 200) httpclient.fatal(`FAIL challenge request returned ${res.status}`);
@@ -83,7 +84,7 @@ async function runChallengeLoop(hc: httpclient.Client, session: Session, call: C
           next.patStatus = res.status; // a 4xx is normal
           break;
         case "form":
-          if (!hc.cookie(pageUrl, "cf_clearance")) httpclient.fatal(`FAIL form POST returned ${res.status} without cf_clearance`);
+          if (!hc.cookie(page.url, "cf_clearance")) httpclient.fatal(`FAIL form POST returned ${res.status} without cf_clearance`);
           return;
       }
     }
