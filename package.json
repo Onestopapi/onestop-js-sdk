@@ -1,6 +1,6 @@
 {
   "name": "onestop-antibot",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "OneStop Antibot SDK: generate Akamai, SBSD, Pixel, DataDome, Cloudflare, Kasada and Imperva payloads through the /generate API.",
   "keywords": [
     "antibot",

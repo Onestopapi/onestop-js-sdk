@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 (2026-10-19)
+
+### Added
+
+- Imperva (utmvc): `await session.impervaUtmvc(scriptUrl, script, cookies)` returns `ImpervaResponse`; its payload is the `___utmvc` cookie value. Example: `examples/httpcloak/imperva_utmvc.ts`.
+
 ## 0.2.0 (2026-10-20)
 
 ### Added

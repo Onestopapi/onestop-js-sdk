@@ -1,3 +1,4 @@
+import { OneStopError } from "./errors.js";
 import { kasadaCdHeader } from "./kasada.js";
 import type * as T from "./types.js";
 import { omit, omitEmptyMap, omitNull, omitNullValue, type Identity } from "./wire.js";
@@ -187,6 +188,18 @@ export class Session {
   /** Generates the reese84 POST body from the challenge script's URL and raw source. */
   imperva(scriptUrl: string, script: string): Promise<T.ImpervaResponse> {
     const body: W.ImpervaWire = { ...this.#datadomeIdentity(), scriptUrl, script };
+    return this.#call("Imperva", "imperva", body);
+  }
+
+  /** Generates the `___utmvc` cookie value from the utmvc script's URL and raw source and the page host's incap_ses_* cookies, in browser cookie order. */
+  async impervaUtmvc(scriptUrl: string, script: string, cookies: T.ImpervaSessionCookie[]): Promise<T.ImpervaResponse> {
+    if (!cookies?.length) throw new OneStopError("onestop: cookies is required: the page's incap_ses_* cookies");
+    const body: W.ImpervaUtmvcWire = {
+      ...this.#datadomeIdentity(),
+      scriptUrl,
+      script,
+      incapSessionCookies: cookies.map(({ name, value }) => ({ name, value })),
+    };
     return this.#call("Imperva", "imperva", body);
   }
 

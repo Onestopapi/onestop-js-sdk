@@ -109,6 +109,10 @@ export interface ImpervaWire extends Identity {
   script: string;
 }
 
+export interface ImpervaUtmvcWire extends ImpervaWire {
+  incapSessionCookies: { name: string; value: string }[];
+}
+
 // Fields left out when empty: an empty string or map, or a null value, is dropped
 // (JSON.stringify drops undefined).
 export const omit = <V>(v: V): V | undefined => v || undefined;

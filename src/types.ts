@@ -207,7 +207,13 @@ export interface KasadaResponse {
   requestId: string;
 }
 
-/** reese84 POST body (JSON text); send it as is. */
+/** One incap_ses_* cookie of the page host, with its exact value, for impervaUtmvc. */
+export interface ImpervaSessionCookie {
+  name: string;
+  value: string;
+}
+
+/** `payload` is the reese84 POST body (JSON text), or the `___utmvc` cookie value; send it as is. */
 export interface ImpervaResponse {
   payload: string;
   sleep: number;

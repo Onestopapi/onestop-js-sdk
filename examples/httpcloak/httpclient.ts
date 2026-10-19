@@ -5,7 +5,10 @@
 // request.
 import { Session } from "httpcloak";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import { OneStopError, type CloudflareHttpRequest } from "onestop-antibot";
+import { OneStopError, type CloudflareHttpRequest, type ImpervaSessionCookie } from "onestop-antibot";
+
+// One cookie of Session.marshal()'s `cookies`, which lists each host's cookies in creation order.
+type ExportedCookie = { name: string; value: string; domain: string; path: string; created_at: string };
 
 export interface Response {
   status: number;
@@ -125,6 +128,26 @@ export class Client {
       }
     }
     return "";
+  }
+
+  // cookies returns the cookies stored for url's host whose name starts with
+  // prefix, in browser order: longer path first, then oldest first. getCookies()
+  // sorts by name, so the order comes from the session export, which keeps each
+  // cookie's creation time and creation order.
+  cookies(url: string, prefix: string): ImpervaSessionCookie[] {
+    const { hostname, pathname } = new URL(url);
+    const jar: Record<string, ExportedCookie[]> = JSON.parse(this.#session.marshal()).cookies;
+    return Object.values(jar)
+      .flat()
+      .map((cookie, order) => ({ cookie, order }))
+      .filter(({ cookie }) => {
+        const domain = cookie.domain.replace(/^\./, "");
+        return cookie.name.startsWith(prefix) && (hostname === domain || hostname.endsWith("." + domain)) && pathname.startsWith(cookie.path);
+      })
+      .sort((a, b) => b.cookie.path.length - a.cookie.path.length
+        || Date.parse(a.cookie.created_at) - Date.parse(b.cookie.created_at)
+        || a.order - b.order)
+      .map(({ cookie }) => ({ name: cookie.name, value: cookie.value }));
   }
 
   // setCookie stores a cookie for domain and its subdomains.
