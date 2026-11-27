@@ -15,7 +15,7 @@ const proxy = ""; // your proxy, in the site's country
 const geoOrigin = "https://geo.captcha-delivery.com";
 
 const ddObject = /var\s+dd\s*=\s*(\{[^}]*\})/;
-const ddScript = /src="([^"]*interstitial\.[^"]*)"/;
+const ddScript = /<script\b[^>]*\bsrc\s*=\s*["']((?:[^"']*\/)?(?:interstitial\.[^"']*|[0-9a-f]{16}\.js(?:[?#][^"']*)?))["']/i;
 
 interface Challenge {
   rt: string;
@@ -91,7 +91,7 @@ async function solveInterstitial(hc: httpclient.Client, session: Session, page: 
   const match = geo.body.match(ddScript);
   if (match) {
     await sleep(200);
-    script = (await hc.get(match[1], httpclient.script(acceptLanguage, "same-site", geoOrigin + "/").storageAccess())).body;
+    script = (await hc.get(geo.resolve(match[1]).href, httpclient.script(acceptLanguage, "same-site", geoOrigin + "/").storageAccess())).body;
   }
 
   await sleep(400);
