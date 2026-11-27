@@ -63,13 +63,16 @@ export interface DatadomeTagsWire extends Identity {
 }
 
 export interface DatadomeInterstitialWire extends Identity {
+  interstitialBlockUrl?: string;
   script: string;
   html: string;
   pageResponse: string;
   context?: string;
 }
 
-export interface DatadomeSliderWire extends DatadomeInterstitialWire {
+export interface DatadomeSliderWire extends Omit<DatadomeInterstitialWire, "interstitialBlockUrl"> {
+  captchaPageUrl?: string;
+  scriptUrl?: string;
   backgroundImage: string;
   puzzlePiece: string;
 }

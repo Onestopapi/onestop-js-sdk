@@ -84,8 +84,12 @@ async function getChallengePage(hc: httpclient.Client, page: httpclient.Response
 async function solveSlider(hc: httpclient.Client, session: Session, page: httpclient.Response, geoUrl: string, geo: httpclient.Response): Promise<void> {
   // Without a script tag the bundle is inline and the API reads it from html.
   let script = "";
+  let scriptUrl = "";
   const match = geo.body.match(captchaScript);
-  if (match) script = (await hc.get(match[1], httpclient.script(acceptLanguage, "same-site", geoOrigin + "/").storageAccess())).body;
+  if (match) {
+    scriptUrl = geo.resolve(match[1]).href;
+    script = (await hc.get(scriptUrl, httpclient.script(acceptLanguage, "same-site", geoOrigin + "/").storageAccess())).body;
+  }
 
   // The background is captchaChallengePath (.jpg); the puzzle piece is the
   // same path as .frag.png. Both go to the API as base64.
@@ -99,6 +103,8 @@ async function solveSlider(hc: httpclient.Client, session: Session, page: httpcl
 
   // script and html are the captcha page's; pageResponse is the blocked page.
   const res = await session.datadomeSlider({
+    captchaPageUrl: geoUrl,
+    scriptUrl,
     script,
     html: geo.body,
     pageResponse: page.body,

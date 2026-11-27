@@ -83,6 +83,7 @@ export interface DatadomeTagsCall {
 }
 
 export interface DatadomeInterstitialCall {
+  interstitialBlockUrl?: string;
   script?: string;
   html?: string;
   pageResponse?: string;
@@ -90,7 +91,9 @@ export interface DatadomeInterstitialCall {
 }
 
 /** Inputs for datadomeSlider. `backgroundImage` and `puzzlePiece` are base64. */
-export interface DatadomeSliderCall extends DatadomeInterstitialCall {
+export interface DatadomeSliderCall extends Omit<DatadomeInterstitialCall, "interstitialBlockUrl"> {
+  captchaPageUrl?: string;
+  scriptUrl?: string;
   backgroundImage?: string;
   puzzlePiece?: string;
 }

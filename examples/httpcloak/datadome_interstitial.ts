@@ -97,6 +97,7 @@ async function solveInterstitial(hc: httpclient.Client, session: Session, page: 
   await sleep(400);
   // script and html are the interstitial's; pageResponse is the blocked page.
   const res = await session.datadomeInterstitial({
+    interstitialBlockUrl: geoUrl,
     script,
     html: geo.body,
     pageResponse: page.body,

@@ -10,6 +10,8 @@ const acceptLanguage = "en-US,en;q=0.9";
 
 const proxy = ""; // your proxy, in the site's country
 
+const maxSensors = 6;
+
 const sensorScript = /<script type="text\/javascript"[^>]*src="([A-Za-z0-9/_-]+)"><\/script>/;
 const sbsdScript = /<script[^>]*src="([^"]*\?v=[^"]*)"/;
 
@@ -62,7 +64,9 @@ function findScripts(page: httpclient.Response): [URL, URL] {
   const sensorMatch = page.body.match(sensorScript);
   const sbsdMatch = page.body.match(sbsdScript);
   if (page.status !== 200 || !sensorMatch || !sbsdMatch) httpclient.fatal(`FAIL homepage returned ${page.status} without the sensor and SBSD scripts`);
-  return [page.resolve(sensorMatch[1]), page.resolve(sbsdMatch[1])];
+  const sbsdUrl = page.resolve(sbsdMatch[1]);
+  if (sbsdUrl.searchParams.get("t")) httpclient.fatal("FAIL SBSD script has t=: a block page, see the sbsd example");
+  return [page.resolve(sensorMatch[1]), sbsdUrl];
 }
 
 async function getScripts(hc: httpclient.Client, page: httpclient.Response, sensorUrl: URL, sbsdUrl: URL): Promise<[string, string]> {
@@ -100,7 +104,7 @@ async function postSensors(hc: httpclient.Client, session: Session, page: httpcl
     if (post.status !== 200 && post.status !== 201) httpclient.fatal(`FAIL sensor POST returned ${post.status}`);
     // Accepted: _abck contains ~0~ or the reply is exactly {"success": true}.
     if (hc.cookie(page.url, "_abck").includes("~0~") || post.bytes.equals(Buffer.from('{"success": true}'))) return;
-    if (n === 8) httpclient.fatal("FAIL sensor not accepted after 8 POSTs");
+    if (n === maxSensors) httpclient.fatal(`FAIL sensor not accepted after ${maxSensors} POSTs`);
     call = { scriptUrl: sensorUrl.href, context: res.context };
   }
 }

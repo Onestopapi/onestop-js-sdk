@@ -116,6 +116,7 @@ export class Session {
   datadomeInterstitial(call: T.DatadomeInterstitialCall): Promise<T.DatadomeInterstitialResponse> {
     const body: W.DatadomeInterstitialWire = {
       ...this.#datadomeIdentity(),
+      interstitialBlockUrl: omit(call.interstitialBlockUrl),
       script: call.script ?? "",
       html: call.html ?? "",
       pageResponse: call.pageResponse ?? "",
@@ -128,6 +129,8 @@ export class Session {
   datadomeSlider(call: T.DatadomeSliderCall): Promise<T.DatadomeSliderResponse> {
     const body: W.DatadomeSliderWire = {
       ...this.#datadomeIdentity(),
+      captchaPageUrl: omit(call.captchaPageUrl),
+      scriptUrl: omit(call.scriptUrl),
       script: call.script ?? "",
       html: call.html ?? "",
       pageResponse: call.pageResponse ?? "",
